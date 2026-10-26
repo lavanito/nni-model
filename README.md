@@ -31,11 +31,13 @@ The derivation, line by line, is in the project doc `claude/a4-identity-derivati
 | `nni_model/decomposition.py` | The decomposition class |
 | `nni_model/contracts.py` | Data contracts (S3 Layer B): C-complete, C-valid, C-integrity; a failing series is blocked |
 | `nni_model/dqr.py` | DQR: S3 ratings as data, input flags, weakest link, CHK cap, digits by band |
+| `nni_model/crosschecks.py` | Cross-checks against PWT and Eurostat, reported on the page; tests fail if a gap turns severe |
 | `nni_model/export.py` | Writes `build/model_input.json` for the page: data, breaks, DQR tables |
 | `js/nni.js` | JavaScript port of the decomposition and DQR; a test checks it matches Python |
 | `tests/` | Exact sums, check term, flags, euro area build, contracts (pass and block), DQR worked examples |
 | `data/wdi/` | WDI snapshots (see its README) |
-| `data/pwt/` | PWT 11.0 hours and employment (see its README) |
+| `data/pwt/` | PWT 11.0 hours, employment and real output (see its README) |
+| `data/eurostat/` | Eurostat hours and persons employed, 21 euro area members (cross-check only) |
 
 ## Run
 

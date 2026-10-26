@@ -6,6 +6,7 @@ Downloaded 26 October 2026 through the World Bank API (api.worldbank.org/v2), in
 |---|---|---|---|
 | `wdi_latest_2026-10-08.csv` | WDI (source 2), last updated 8 October 2026; USA, EMU, GBR, CHN, IND, JPN; 17 series | 2,652 | 2000–2025 |
 | `wdi_latest_2026-10-08_euro_members.csv` | Same edition; the 21 euro area members; 12 series | 6,552 | 2000–2025 |
+| `wdi_latest_2026-10-08_euro_members_ppp.csv` | Same edition; the 21 members; GDP at constant 2021 PPPs (`NY.GDP.MKTP.PP.KD`), for the per-hour cross-check | 546 | 2000–2025 |
 | `wdi_archive_202403.csv` | WDI Database Archives (source 57), version 202403 ("2024 Mar"), the last edition before the ICP 2021 results (30 May 2024); six economies; 17 series | 2,550 | 2000–2024 |
 
 Columns: economy, series, year, value (blank = not published).

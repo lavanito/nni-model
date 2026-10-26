@@ -13,6 +13,7 @@ import json
 from pathlib import Path
 
 from nni_model.contracts import blocked, check
+from nni_model.crosschecks import report as crosscheck_report
 from nni_model.data import latest_snapshot
 from nni_model.decomposition import BREAKS
 from nni_model.dqr import FLAG_CAPS, INPUTS, RATINGS
@@ -41,6 +42,7 @@ def model_input():
         "ratings": RATINGS,
         "inputs": INPUTS,
         "flag_caps": FLAG_CAPS,
+        "crosschecks": crosscheck_report(),
     }
 
 

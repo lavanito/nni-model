@@ -16,8 +16,8 @@ What this file does
 
 Source
     S3 data quality statement, signed off by Lavan on 26 October 2026
-    (statement per series). Ratings marked PROPOSED are not in S3 and
-    await Lavan's decision.
+    (statement per series). The consumption deflator's rating is not in S3;
+    Lavan agreed on 26 October 2026 that it follows real GDP.
 """
 
 from dataclasses import dataclass
@@ -74,9 +74,10 @@ RATINGS = {
                 EA21=(MEDIUM, "Estimated: built from PWT for 21 members; 0.5-1.8% below Eurostat's total hours"))
         for p in ("P2", "P3")
     },
-    # PROPOSED (not in S3): the consumption deflator follows real GDP for P4.
+    # Not in S3; agreed by Lavan on 26 October 2026: follows real GDP for P4.
     "consumption_deflator": {
-        "P4": _all(HIGH, "PROPOSED, not in S3: follows real GDP", CHN=CHINA_GDP, IND=INDIA_GDP),
+        "P4": _all(HIGH, "All criteria met (rating follows real GDP; agreed 26 Oct 2026)",
+                   CHN=CHINA_GDP, IND=INDIA_GDP),
     },
 }
 
