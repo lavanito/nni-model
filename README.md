@@ -29,8 +29,11 @@ The derivation, line by line, is in the project doc `claude/a4-identity-derivati
 |---|---|
 | `nni_model/data.py` | Loads WDI snapshots; builds the euro area from its members |
 | `nni_model/decomposition.py` | The decomposition class |
-| `tests/` | Tests on the snapshot: exact sums, check term, flags, euro area build |
+| `nni_model/contracts.py` | Data contracts (S3 Layer B): C-complete, C-valid, C-integrity; a failing series is blocked |
+| `nni_model/dqr.py` | DQR: S3 ratings as data, input flags, weakest link, CHK cap, digits by band |
+| `tests/` | Exact sums, check term, flags, euro area build, contracts (pass and block), DQR worked examples |
 | `data/wdi/` | WDI snapshots (see its README) |
+| `data/pwt/` | PWT 11.0 hours and employment (see its README) |
 
 ## Run
 
