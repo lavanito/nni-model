@@ -71,3 +71,22 @@ def test_euro_area_chain_link_matches_base_year(snapshot):
 def test_india_rebase_in_latest_edition(snapshot):
     """2022 nominal GDP of 261.18 lakh crore means the 2022-23 base is in."""
     assert snapshot.get("IND", "NY.GDP.MKTP.CN", 2022) / 1e12 == pytest.approx(261.18, abs=0.01)
+
+
+@pytest.mark.parametrize("economy", ECONOMIES)
+def test_hours_split_adds_up_to_c4(snapshot, economy):
+    split = [r for r in NNIDecomposition(snapshot, economy).run() if r.c4a is not None]
+    assert [r.year for r in split][-1] == 2023
+    for r in split:
+        assert abs(r.c4a + r.c4b + r.c4c - r.c4) < 1e-9
+
+
+def test_india_2019_employment_break_moves_value_between_parts(snapshot):
+    r = NNIDecomposition(snapshot, "IND").year(2019)
+    assert any("ETD to ILO" in f for f in r.flags)
+    assert r.c4c > 7 and r.c4a < -5   # employment jump shifts C4a into C4c
+
+
+def test_euro_area_hours_match_a2(snapshot):
+    """A2 (23 Oct): euro area built from PWT, 1,533 hours per person in 2023."""
+    assert round(snapshot.get("EA21", "PWT.AVH", 2023)) == 1533

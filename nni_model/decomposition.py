@@ -8,7 +8,8 @@ What this file does
         growth = C1a income gap + C2 deflator mix + C4 real GDP per head
 
     C4 splits further into output per hour worked (C4a), hours per worker
-    (C4b) and workers per person (C4c) once PWT hours are loaded.
+    (C4b) and workers per person (C4c), from PWT 11.0 hours and persons
+    engaged (to 2023; later years show C4 unsplit).
     CHK compares with WDI's published adjusted NNI per head.
 
 Inputs
@@ -27,6 +28,8 @@ from dataclasses import dataclass, field
 
 # Known breaks in a series (criterion C-time in the S3 statement).
 BREAKS = {
+    ("IND", 2019): "PWT employment for India changes source in 2019 (ETD to ILO official): "
+                   "persons engaged rise 9.4%, so C4a and C4c shift; their sum is unaffected.",
     ("IND", 2022): "India's GDP rebased to 2022-23 (MoSPI, 27 Feb 2026): WDI's nominal "
                    "values are on the new base from 2022 and on the old base for 2021.",
 }
@@ -51,6 +54,10 @@ class Levels:
     real_gdp_per_head: float
     real_nni_per_head: float   # NNI / (P_C x population), constant prices
     direct: float = None       # from WDI's published NNI per head, for CHK
+    real_gdp: float = None
+    persons_engaged: float = None   # PWT emp
+    hours_per_person: float = None  # PWT avh
+    population: float = None
     flags: list = field(default_factory=list)
 
 
@@ -64,6 +71,9 @@ class YearResult:
     total: float
     chk: float = None
     flags: list = field(default_factory=list)
+    c4a: float = None   # output per hour worked
+    c4b: float = None   # hours per worker
+    c4c: float = None   # workers per person
 
     @property
     def parts_sum(self):
@@ -139,6 +149,10 @@ class NNIDecomposition:
             real_nni_per_head=nni / consumption_deflator / population,
             direct=direct,
             flags=flags,
+            real_gdp=gdp_real,
+            persons_engaged=self._get("PWT.EMP", year),
+            hours_per_person=self._get("PWT.AVH", year),
+            population=population,
         )
 
     def year(self, year):
@@ -157,7 +171,16 @@ class NNIDecomposition:
         flags = list(new.flags)
         if (self.economy, year) in BREAKS:
             flags.append("break: " + BREAKS[(self.economy, year)])
-        return YearResult(self.economy, year, c1a, c2, c4, total, chk, flags)
+        result = YearResult(self.economy, year, c1a, c2, c4, total, chk, flags)
+        if None not in (old.persons_engaged, new.persons_engaged,
+                        old.hours_per_person, new.hours_per_person):
+            hours_old = old.persons_engaged * old.hours_per_person
+            hours_new = new.persons_engaged * new.hours_per_person
+            result.c4a = log_change(old.real_gdp / hours_old, new.real_gdp / hours_new)
+            result.c4b = log_change(old.hours_per_person, new.hours_per_person)
+            result.c4c = log_change(old.persons_engaged / old.population,
+                                    new.persons_engaged / new.population)
+        return result
 
     def run(self, years=range(2001, 2026)):
         """Every year with data, in order."""

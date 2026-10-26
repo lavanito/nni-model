@@ -135,9 +135,42 @@ def build_euro_area(snapshot, years=range(2000, 2026), code="EA21"):
     return snapshot
 
 
+PWT = Path(__file__).resolve().parent.parent / "data" / "pwt" / "pwt110_hours.csv"
+
+
+def load_pwt_hours(snapshot, path=PWT, code="EA21"):
+    """Add PWT 11.0 persons engaged (PWT.EMP, persons) and average annual hours
+    per person engaged (PWT.AVH), and build both for the euro area.
+
+    Euro area hours per person = total hours (sum of emp x avh) / total persons.
+
+    Example:
+        >>> s = load_pwt_hours(Snapshot("test"))
+        >>> s.get("IND", "PWT.AVH", 2019)
+        2605.39
+    """
+    with open(path, encoding="utf-8") as f:
+        for row in csv.DictReader(f):
+            year = int(row["year"])
+            snapshot.set(row["economy"], "PWT.EMP", year, float(row["emp_millions"]) * 1e6)
+            snapshot.set(row["economy"], "PWT.AVH", year, float(row["avh_hours"]))
+    for year in sorted({y for (e, s), v in snapshot.values.items() if s == "PWT.EMP" for y in v}):
+        emp = [snapshot.get(m, "PWT.EMP", year) for m in EURO_MEMBERS]
+        avh = [snapshot.get(m, "PWT.AVH", year) for m in EURO_MEMBERS]
+        if None in emp or None in avh:
+            continue
+        persons = sum(emp)
+        hours = sum(e * h for e, h in zip(emp, avh))
+        snapshot.set(code, "PWT.EMP", year, persons)
+        snapshot.set(code, "PWT.AVH", year, hours / persons)
+    return snapshot
+
+
 def latest_snapshot():
-    """The latest WDI edition (8 October 2026) with the euro area built."""
-    s = Snapshot("WDI 2026-10-08")
+    """The latest WDI edition (8 October 2026) with the euro area built,
+    plus PWT 11.0 hours and employment."""
+    s = Snapshot("WDI 2026-10-08; PWT 11.0")
     load_csv(DATA / "wdi_latest_2026-10-08.csv", s)
     load_csv(DATA / "wdi_latest_2026-10-08_euro_members.csv", s)
-    return build_euro_area(s)
+    build_euro_area(s)
+    return load_pwt_hours(s)
