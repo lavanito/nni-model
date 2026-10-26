@@ -31,6 +31,8 @@ The derivation, line by line, is in the project doc `claude/a4-identity-derivati
 | `nni_model/decomposition.py` | The decomposition class |
 | `nni_model/contracts.py` | Data contracts (S3 Layer B): C-complete, C-valid, C-integrity; a failing series is blocked |
 | `nni_model/dqr.py` | DQR: S3 ratings as data, input flags, weakest link, CHK cap, digits by band |
+| `nni_model/export.py` | Writes `build/model_input.json` for the page: data, breaks, DQR tables |
+| `js/nni.js` | JavaScript port of the decomposition and DQR; a test checks it matches Python |
 | `tests/` | Exact sums, check term, flags, euro area build, contracts (pass and block), DQR worked examples |
 | `data/wdi/` | WDI snapshots (see its README) |
 | `data/pwt/` | PWT 11.0 hours and employment (see its README) |
@@ -41,7 +43,9 @@ The derivation, line by line, is in the project doc `claude/a4-identity-derivati
 python -m pytest --doctest-modules nni_model tests
 ```
 
-Python 3.10 or later; pytest is the only package needed.
+Python 3.10 or later; pytest is the only package needed. The JavaScript test needs Node.js 18 or later; it is skipped without it. GitHub runs all tests on every push.
+
+To write the page's input file: `python -m nni_model.export`.
 
 ## Licence
 
