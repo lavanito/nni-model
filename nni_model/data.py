@@ -1,13 +1,13 @@
 """Load WDI snapshots and build the euro area from its members.
 
 What this file does
-    Reads the long CSV files in data/wdi/ (one row per economy, series,
+    Reads the long CSV files in nni_model/data/wdi/ (one row per economy, series,
     year and value) into a Snapshot, and builds the euro area (code EA21)
     from the 21 member economies listed in the A2 data list.
 
 Inputs
-    data/wdi/wdi_latest_2026-10-08.csv            six economies (EMU lacks local-currency series)
-    data/wdi/wdi_latest_2026-10-08_euro_members.csv  the 21 members
+    nni_model/data/wdi/wdi_latest_2026-10-08.csv            six economies (EMU lacks local-currency series)
+    nni_model/data/wdi/wdi_latest_2026-10-08_euro_members.csv  the 21 members
 
 Outputs
     A Snapshot: values keyed by (economy, series, year), plus notes on how
@@ -18,7 +18,7 @@ import csv
 from collections import defaultdict
 from pathlib import Path
 
-DATA = Path(__file__).resolve().parent.parent / "data" / "wdi"
+DATA = Path(__file__).resolve().parent / "data" / "wdi"
 
 EURO_MEMBERS = ["AUT", "BEL", "BGR", "HRV", "CYP", "EST", "FIN", "FRA", "DEU", "GRC", "IRL",
                 "ITA", "LVA", "LTU", "LUX", "MLT", "NLD", "PRT", "SVK", "SVN", "ESP"]
@@ -135,7 +135,7 @@ def build_euro_area(snapshot, years=range(2000, 2026), code="EA21"):
     return snapshot
 
 
-PWT = Path(__file__).resolve().parent.parent / "data" / "pwt" / "pwt110_hours.csv"
+PWT = Path(__file__).resolve().parent / "data" / "pwt" / "pwt110_hours.csv"
 
 
 def load_pwt_hours(snapshot, path=PWT, code="EA21"):

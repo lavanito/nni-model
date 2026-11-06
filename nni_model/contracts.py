@@ -12,7 +12,7 @@ What this file does
     Each test must pass 100%. A series that fails is blocked: the model may not use it.
 
 Inputs
-    The raw CSV files in data/wdi/ and data/pwt/.
+    The raw CSV files in nni_model/data/wdi/ and nni_model/data/pwt/.
 
 Outputs
     A Report: per series, pass or fail, with the failing rows.
@@ -26,7 +26,7 @@ from collections import Counter
 from dataclasses import dataclass, field
 from pathlib import Path
 
-ROOT = Path(__file__).resolve().parent.parent / "data"
+ROOT = Path(__file__).resolve().parent / "data"
 
 SIX = ["USA", "GBR", "JPN", "CHN", "IND"]           # EMU is built from members (EA21)
 MEMBERS = ["AUT", "BEL", "BGR", "HRV", "CYP", "EST", "FIN", "FRA", "DEU", "GRC", "IRL",
