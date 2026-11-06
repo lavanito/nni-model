@@ -80,3 +80,10 @@ def test_euro_area_gni_per_head_at_ppp_is_the_members_total_over_population():
     for y in (2005, 2024):
         total = sum(gni_at_ppp(s, m, y) for m in EURO_MEMBERS)
         assert s.get("EA21", "NY.GNP.PCAP.PP.CD", y) == total / s.get("EA21", "SP.POP.TOTL", y)
+
+
+def test_each_euro_area_member_has_gni_per_head_at_ppp():
+    s = load_inputs()
+    for m in EURO_MEMBERS:
+        expected = gni_at_ppp(s, m, 2024) / s.get(m, "SP.POP.TOTL", 2024)
+        assert s.get(m, "NY.GNP.PCAP.PP.CD", 2024) == expected, m

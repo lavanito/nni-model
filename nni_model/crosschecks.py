@@ -71,6 +71,9 @@ def load_inputs():
         # NY.GNP.PCAP.PP.CD within its rounding to 10 dollars; India before 2022
         # differs by about 3% (GDP rebasing). Agreed by Lavan, 6 Nov 2026.
         gni_ppp = [gni_at_ppp(s, m, y) for m in EURO_MEMBERS]
+        for m, value in zip(EURO_MEMBERS, gni_ppp):     # each member, per head, too
+            if value is not None and s.get(m, "SP.POP.TOTL", y) is not None:
+                s.set(m, "NY.GNP.PCAP.PP.CD", y, value / s.get(m, "SP.POP.TOTL", y))
         population = s.get("EA21", "SP.POP.TOTL", y)
         if None not in gni_ppp and population is not None:
             s.set("EA21", "NY.GNP.PCAP.PP.CD", y, sum(gni_ppp) / population)
