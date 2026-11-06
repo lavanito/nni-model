@@ -38,6 +38,14 @@ def log_change(old, new):
     return (math.log(new) - math.log(old)) * 100
 
 
+def gni_at_ppp(s, economy, y):
+    """GNI in current international dollars: GNI (local currency) / PPP conversion factor."""
+    gni, ppp = s.get(economy, "NY.GNP.MKTP.CN", y), s.get(economy, "PA.NUS.PPP", y)
+    if gni is None or ppp is None:
+        return None
+    return gni / ppp
+
+
 def load_inputs():
     s = latest_snapshot()
     load_csv(DATA / "wdi" / "wdi_latest_2026-10-08_euro_members_ppp.csv", s)
@@ -56,6 +64,16 @@ def load_inputs():
             values = [s.get(m, series, y) for m in EURO_MEMBERS]
             if None not in values:            # both in common international dollars, so summable
                 s.set("EA21", series, y, sum(values))
+        # GNI at PPP: each member's GNI (euros) divided by its PPP conversion factor
+        # (euros per international dollar) is in current international dollars, so
+        # members add up. Per head: divided by euro area population. For the United
+        # States, United Kingdom, Japan and China this reproduces WDI's
+        # NY.GNP.PCAP.PP.CD within its rounding to 10 dollars; India before 2022
+        # differs by about 3% (GDP rebasing). Agreed by Lavan, 6 Nov 2026.
+        gni_ppp = [gni_at_ppp(s, m, y) for m in EURO_MEMBERS]
+        population = s.get("EA21", "SP.POP.TOTL", y)
+        if None not in gni_ppp and population is not None:
+            s.set("EA21", "NY.GNP.PCAP.PP.CD", y, sum(gni_ppp) / population)
         hours = [s.get("ES:" + EUROSTAT_CODES[m], "THS_HW", y) for m in EURO_MEMBERS]
         persons = [s.get("ES:" + EUROSTAT_CODES[m], "THS_PER", y) for m in EURO_MEMBERS]
         if None not in hours and None not in persons:
