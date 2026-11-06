@@ -4,6 +4,14 @@ The model behind the AI readiness demonstrator. It works out real NNI per head a
 
 Economies: United States, euro area (21 members, built here), United Kingdom, China, India, Japan.
 
+## Install
+
+```
+pip install "nni-model @ git+https://github.com/lavanito/nni-model@COMMIT"
+```
+
+Replace COMMIT with a commit id so results can be reproduced. The data files are installed with the code.
+
 ## What it computes
 
 Growth in real NNI per head, in log points, splits into:
@@ -35,9 +43,9 @@ The derivation, line by line, is in the project doc `claude/a4-identity-derivati
 | `nni_model/export.py` | Writes `build/model_input.json` for the page: data, breaks, DQR tables |
 | `js/nni.js` | JavaScript port of the decomposition and DQR; a test checks it matches Python |
 | `tests/` | Exact sums, check term, flags, euro area build, contracts (pass and block), DQR worked examples |
-| `data/wdi/` | WDI snapshots (see its README) |
-| `data/pwt/` | PWT 11.0 hours, employment and real output (see its README) |
-| `data/eurostat/` | Eurostat hours and persons employed, 21 euro area members (cross-check only) |
+| `nni_model/data/wdi/` | WDI snapshots (see its README) |
+| `nni_model/data/pwt/` | PWT 11.0 hours, employment and real output (see its README) |
+| `nni_model/data/eurostat/` | Eurostat hours and persons employed, 21 euro area members (cross-check only) |
 
 ## Run
 

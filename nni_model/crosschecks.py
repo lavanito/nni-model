@@ -25,7 +25,7 @@ from pathlib import Path
 
 from nni_model.data import EURO_MEMBERS, Snapshot, latest_snapshot, load_csv
 
-DATA = Path(__file__).resolve().parent.parent / "data"
+DATA = Path(__file__).resolve().parent / "data"
 SIX = ["USA", "EA21", "GBR", "JPN", "CHN", "IND"]
 # Eurostat uses two-letter codes; Greece is EL.
 EUROSTAT_CODES = {"AUT": "AT", "BEL": "BE", "BGR": "BG", "HRV": "HR", "CYP": "CY", "EST": "EE",
