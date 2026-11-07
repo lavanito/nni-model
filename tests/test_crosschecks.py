@@ -6,7 +6,9 @@ of a growth rate that is more than a quarter of a point from zero.
 
 import pytest
 
-from nni_model.crosschecks import (SIX, euro_hours_gap, euro_per_hour_growth, load_inputs,
+from nni_model.data import EURO_MEMBERS
+
+from nni_model.crosschecks import (SIX, euro_hours_gap, euro_per_hour_growth, gni_at_ppp, load_inputs,
                                    output_growth, output_level_gap, ranking, report)
 
 NEAR_ZERO = 0.25   # log points: a sign difference this close to zero is not severe
@@ -59,3 +61,29 @@ def test_euro_2023_per_hour_growth_has_same_sign_with_both_sources(s):
 def test_report_has_four_checks():
     lines = report()
     assert [l[:2] for l in lines if l[0].isdigit()] == ["1.", "2.", "3.", "4."]
+
+
+def test_gni_at_ppp_reproduces_wdi_per_head_figure():
+    # GNI / PPP factor / population matches WDI's NY.GNP.PCAP.PP.CD, which WDI rounds
+    # to the nearest 10 dollars,
+    # for four of the six; India before 2022 differs because of GDP rebasing.
+    s = load_inputs()
+    for economy in ["USA", "GBR", "JPN", "CHN"]:
+        for y in range(2000, 2025):
+            published = s.get(economy, "NY.GNP.PCAP.PP.CD", y)
+            derived = gni_at_ppp(s, economy, y) / s.get(economy, "SP.POP.TOTL", y)
+            assert abs(derived - published) <= 5, (economy, y)
+
+
+def test_euro_area_gni_per_head_at_ppp_is_the_members_total_over_population():
+    s = load_inputs()
+    for y in (2005, 2024):
+        total = sum(gni_at_ppp(s, m, y) for m in EURO_MEMBERS)
+        assert s.get("EA21", "NY.GNP.PCAP.PP.CD", y) == total / s.get("EA21", "SP.POP.TOTL", y)
+
+
+def test_each_euro_area_member_has_gni_per_head_at_ppp():
+    s = load_inputs()
+    for m in EURO_MEMBERS:
+        expected = gni_at_ppp(s, m, 2024) / s.get(m, "SP.POP.TOTL", 2024)
+        assert s.get(m, "NY.GNP.PCAP.PP.CD", 2024) == expected, m
