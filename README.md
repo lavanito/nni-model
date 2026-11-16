@@ -59,7 +59,7 @@ To write the page's input file: `python -m nni_model.export`.
 
 ## Licence
 
-Code: MIT, Lavan Mahadeva Ltd. Data: World Bank, World Development Indicators, CC BY 4.0.
+Code: MIT, Lavan Mahadeva Limited. Data: World Bank, World Development Indicators, CC BY 4.0.
 
 ## Glossary
 
