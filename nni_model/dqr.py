@@ -14,9 +14,16 @@ What this file does
 
     The language model reports the band, its label and its reason; it never works them out.
 
+Reasons
+    Each reason that lowers a band names the S3 criterion, its CDDQ dimension
+    and the underlying concept, then the fact: for example
+    "C-measured (Lineage: Provenance): ...". CRITERIA lists the concepts
+    each criterion may name (S3 draft 5, Criteria table).
+
 Source
-    S3 data quality statement, signed off by Lavan on 26 October 2026
-    (statement per series). The consumption deflator's rating is not in S3;
+    S3 data quality statement, draft 5, signed off by Lavan on 21 November 2026
+    (statement per series; criteria named after Myers, Data Quality
+    Techniques, 2026). The consumption deflator's rating is not in S3;
     Lavan agreed on 26 October 2026 that it follows real GDP.
 """
 
@@ -34,49 +41,92 @@ def _all(band, reason, **overrides):
     return table
 
 
-CHINA_GDP = (MEDIUM, "C-concept: growth overstated by about 1.8 points a year, 2010-2016 "
-                     "(Chen, Chen, Hsieh and Song, 2019); does not change the sign of growth")
-INDIA_GDP = (LOW, "C-time: base year changed from 2011-12 to 2022-23 (MoSPI, Feb 2026); "
-                  "nominal GDP about 3-4% lower; break in the series")
-PPP_CN_IN = (LOW, "C-measured: PPPs extrapolated from the 2021 benchmark; wide error margins for China and India")
-HOURS_CN_IN = (LOW, "C-measured: PWT hours rest on weak underlying data (TED, ILO modelled estimates), not direct observation")
+# S3 draft 5: criterion -> (CDDQ dimension, underlying concepts it may name).
+CRITERIA = {
+    "C-coverage": ("Completeness", ["Existence"]),
+    "C-concept": ("Accuracy", ["Agree with Real-world"]),
+    "C-across": ("Consistency", ["Equivalence of Data"]),
+    "C-time": ("Consistency", ["Temporal Consistency"]),
+    "C-revision": ("Accuracy", ["Match to Agreed Source"]),
+    "C-precision": ("Precision", ["Precision of Data Value", "Domain Precision", "Granularity"]),
+    "C-measured": ("Lineage", ["Provenance", "Segment Documentation"]),
+    "C-timely": ("Timeliness", ["Time Expectation for Availability"]),
+    "C-currency": ("Currency", ["Current with World it Models"]),
+    "C-representation": ("Representation", ["Metadata Availability", "Includes Measurement Units"]),
+}
+MET = "All criteria met"
+
+
+def why(criterion, concept, fact):
+    """A rating reason that names the criterion, dimension and underlying concept.
+
+    Example:
+        >>> why("C-time", "Temporal Consistency", "break in 2019")
+        'C-time (Consistency: Temporal Consistency): break in 2019'
+    """
+    dimension, concepts = CRITERIA[criterion]
+    if concept not in concepts:
+        raise ValueError(f"{concept} is not an underlying concept of {criterion}")
+    return f"{criterion} ({dimension}: {concept}): {fact}"
+
+
+CHINA_GDP = (MEDIUM, why("C-concept", "Agree with Real-world",
+                         "growth overstated by about 1.8 points a year, 2010-2016 "
+                         "(Chen, Chen, Hsieh and Song, 2019); does not change the sign of growth"))
+INDIA_GDP = (LOW, why("C-time", "Temporal Consistency",
+                      "base year changed from 2011-12 to 2022-23 (MoSPI, Feb 2026); "
+                      "nominal GDP about 3-4% lower; break in the series"))
+PPP_CN_IN = (LOW, why("C-measured", "Provenance",
+                      "PPPs extrapolated from the 2021 benchmark; wide error margins for China and India"))
+HOURS_CN_IN = (LOW, why("C-measured", "Provenance",
+                        "PWT hours come from weak underlying data (TED, ILO modelled estimates), "
+                        "not direct observation"))
+
+PPP_EXTRAPOLATED = why("C-measured", "Provenance",
+                       "2022 onwards extrapolated from the ICP 2021 benchmark")
 
 # RATINGS[series][purpose][economy] = (band, reason); "-" = series not used for the purpose.
 RATINGS = {
     "real_gdp": {
-        p: _all(HIGH, "All criteria met", CHN=CHINA_GDP, IND=INDIA_GDP) for p in ("P1", "P3", "P4")
+        p: _all(HIGH, MET, CHN=CHINA_GDP, IND=INDIA_GDP) for p in ("P1", "P3", "P4")
     },
     "gni_nni": {
-        "P2": _all(HIGH, "All criteria met",
-                   EA21=(MEDIUM, "C-concept: euro area total includes Ireland's multinational profits")),
-        "P4": _all(MEDIUM, "C-concept: depreciation and depletion estimates differ in method between economies"),
+        "P2": _all(HIGH, MET,
+                   EA21=(MEDIUM, why("C-concept", "Agree with Real-world",
+                                     "euro area total includes Ireland's multinational profits"))),
+        "P4": _all(MEDIUM, why("C-across", "Equivalence of Data",
+                               "depreciation and depletion estimates differ in method between economies")),
     },
     "ppp": {
-        "P2": _all(MEDIUM, "C-measured: 2022 onwards extrapolated from the ICP 2021 benchmark",
-                   CHN=PPP_CN_IN, IND=PPP_CN_IN),
-        "P3": _all(MEDIUM, "C-measured: 2022 onwards extrapolated from the ICP 2021 benchmark",
-                   CHN=PPP_CN_IN, IND=PPP_CN_IN),
-        "P4": _all(MEDIUM, "C-measured: PPP level from the ICP 2021 benchmark"),
+        "P2": _all(MEDIUM, PPP_EXTRAPOLATED, CHN=PPP_CN_IN, IND=PPP_CN_IN),
+        "P3": _all(MEDIUM, PPP_EXTRAPOLATED, CHN=PPP_CN_IN, IND=PPP_CN_IN),
+        "P4": _all(MEDIUM, why("C-measured", "Provenance", "PPP level from the ICP 2021 benchmark")),
     },
     "population": {
-        p: _all(HIGH, "All criteria met",
-                IND=(MEDIUM, "C-measured: last census 2011; error a few per cent, does not reverse the ranking"))
+        p: _all(HIGH, MET,
+                IND=(MEDIUM, why("C-measured", "Provenance",
+                                 "last census 2011; error a few per cent, does not reverse the ranking")))
         for p in ("P2", "P4")
     },
     "employment": {
-        "P3": _all(HIGH, "All criteria met",
-                   CHN=(MEDIUM, "C-across: large informal employment; definitions differ"),
-                   IND=(LOW, "C-time: employment source changes in 2019 (ETD to ILO official); "
-                             "productivity growth across 2019 drops by about 9 points from the change alone")),
+        "P3": _all(HIGH, MET,
+                   CHN=(MEDIUM, why("C-across", "Equivalence of Data",
+                                    "large informal employment; definitions differ")),
+                   IND=(LOW, why("C-time", "Temporal Consistency",
+                                 "employment source changes in 2019 (ETD to ILO official); "
+                                 "productivity growth across 2019 drops by about 9 points "
+                                 "from the change alone"))),
     },
     "hours": {
-        p: _all(HIGH, "All criteria met", CHN=HOURS_CN_IN, IND=HOURS_CN_IN,
-                EA21=(MEDIUM, "Estimated: built from PWT for 21 members; 0.5-1.8% below Eurostat's total hours"))
+        p: _all(HIGH, MET, CHN=HOURS_CN_IN, IND=HOURS_CN_IN,
+                EA21=(MEDIUM, why("C-measured", "Segment Documentation",
+                                  "estimated: built from PWT for 21 members; "
+                                  "0.5-1.8% below Eurostat's total hours")))
         for p in ("P2", "P3")
     },
     # Not in S3; agreed by Lavan on 26 October 2026: follows real GDP for P4.
     "consumption_deflator": {
-        "P4": _all(HIGH, "All criteria met (rating follows real GDP; agreed 26 Oct 2026)",
+        "P4": _all(HIGH, MET + " (rating follows real GDP; agreed 26 Oct 2026)",
                    CHN=CHINA_GDP, IND=INDIA_GDP),
     },
 }
@@ -97,6 +147,9 @@ FLAG_CAPS = {
     "outlier-suspect": LOW,
     "break": LOW,
 }
+
+# S3 draft 5, DQR rule step 2: the test behind the outlier-suspect flag.
+FLAG_CONCEPTS = {"outlier-suspect": "Validity: Values in Specified Range"}
 
 
 @dataclass
@@ -137,6 +190,8 @@ def rate(purpose, economies, flags=(), chk=None, inputs=None):
             if band > LOW:
                 band, reason = band - 1, f"provisional (first release): one band below; {reason}"
         elif FLAG_CAPS.get(word) is not None:
+            if word in FLAG_CONCEPTS:
+                flag = f"{flag} ({FLAG_CONCEPTS[word]})"
             if band > FLAG_CAPS[word]:
                 band, reason = FLAG_CAPS[word], f"{flag}; also {reason}"
             else:

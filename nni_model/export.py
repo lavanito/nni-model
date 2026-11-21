@@ -16,7 +16,7 @@ from nni_model.contracts import blocked, check
 from nni_model.crosschecks import report as crosscheck_report
 from nni_model.data import latest_snapshot
 from nni_model.decomposition import BREAKS
-from nni_model.dqr import FLAG_CAPS, INPUTS, RATINGS
+from nni_model.dqr import FLAG_CAPS, FLAG_CONCEPTS, INPUTS, RATINGS
 
 ECONOMIES = ["USA", "EA21", "GBR", "JPN", "CHN", "IND"]
 SERIES = ["NY.GDP.MKTP.CN", "NY.GDP.MKTP.KN", "NE.CON.PRVT.CN", "NE.CON.PRVT.KD",
@@ -42,6 +42,7 @@ def model_input():
         "ratings": RATINGS,
         "inputs": INPUTS,
         "flag_caps": FLAG_CAPS,
+        "flag_concepts": FLAG_CONCEPTS,
         "crosschecks": crosscheck_report(),
     }
 

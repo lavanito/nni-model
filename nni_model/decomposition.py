@@ -35,6 +35,30 @@ BREAKS = {
 }
 
 
+# Cardinality (S3 draft 5, C-integrity): each part belongs to exactly one total.
+# "total" is growth in real NNI per head; C4 is itself the total of C4a-C4c.
+PARTS = {"c1a": "total", "c2": "total", "c4": "total",
+         "c4a": "c4", "c4b": "c4", "c4c": "c4"}
+
+
+def part_gaps(result):
+    """For each total, the total minus the sum of its parts (0 when they add up).
+
+    Totals whose parts are missing (C4 after 2023) are left out.
+
+    Example:
+        >>> r = YearResult("XXX", 2021, c1a=1.0, c2=0.5, c4=2.0, total=3.5,
+        ...                c4a=1.5, c4b=0.25, c4c=0.25)
+        >>> part_gaps(r)
+        {'total': 0.0, 'c4': 0.0}
+    """
+    totals = {}
+    for part, total in PARTS.items():
+        totals.setdefault(total, []).append(getattr(result, part))
+    return {total: getattr(result, total) - sum(values)
+            for total, values in totals.items() if None not in values}
+
+
 def log_change(old, new):
     """Change in the natural log, times 100.
 
