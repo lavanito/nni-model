@@ -114,12 +114,13 @@ function rate(input, purpose, economies, flags = [], chk = null) {
     }
   }
   let [band, reason] = candidates.reduce((best, c) => (c[0] < best[0] ? c : best));
-  for (const flag of flags) {
+  for (let flag of flags) {
     const word = flag.split(":")[0].trim();
     const cap = input.flag_caps[word];
     if (word === "provisional") {
       if (band > LOW) { band -= 1; reason = `provisional (first release): one band below; ${reason}`; }
     } else if (cap !== undefined && cap !== null) {
+      if (input.flag_concepts[word]) flag = `${flag} (${input.flag_concepts[word]})`;
       if (band > cap) { band = cap; reason = `${flag}; also ${reason}`; }
       else { reason = `${reason}; also ${flag}`; }
     }

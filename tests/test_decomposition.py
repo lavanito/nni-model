@@ -90,3 +90,18 @@ def test_india_2019_employment_break_moves_value_between_parts(snapshot):
 def test_euro_area_hours_match_a2(snapshot):
     """A2 (23 Oct): euro area built from PWT, 1,533 hours per person in 2023."""
     assert round(snapshot.get("EA21", "PWT.AVH", 2023)) == 1533
+
+
+def test_each_part_belongs_to_one_total_and_parts_add_up():
+    from nni_model.decomposition import PARTS, YearResult, part_gaps
+    fields = set(YearResult.__dataclass_fields__)
+    assert set(PARTS) <= fields and set(PARTS.values()) <= fields
+    assert set(PARTS) == {"c1a", "c2", "c4", "c4a", "c4b", "c4c"}
+    snapshot = latest_snapshot()
+    checked = 0
+    for economy in ["USA", "EA21", "GBR", "JPN", "CHN", "IND"]:
+        for r in NNIDecomposition(snapshot, economy).run():
+            for total, gap in part_gaps(r).items():
+                assert abs(gap) < 1e-9, (economy, r.year, total, gap)
+                checked += 1
+    assert checked > 200

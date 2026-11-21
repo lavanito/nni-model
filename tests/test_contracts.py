@@ -1,6 +1,9 @@
 """Layer B contracts: pass on the real files, block on broken ones."""
 
-from nni_model.contracts import CONTRACTS, blocked, check, raw_rows
+from dataclasses import replace
+
+from nni_model.contracts import (CONTRACT_LIST, CONTRACTS, NOT_CONTRACTED, blocked, check,
+                                  raw_rows, units_problems)
 
 
 def test_real_files_pass_every_contract():
@@ -38,3 +41,35 @@ def test_exceptions_are_written_with_reasons():
     for c in CONTRACTS.values():
         for economy, (years, reason) in c.exceptions.items():
             assert reason
+
+
+def test_unknown_series_blocks_referential_integrity():
+    rows = raw_rows() + [("USA", "XX.NEW.SERIES", "2020", "1.0")]
+    assert blocked(check(rows)) == ["XX.NEW.SERIES"]
+
+
+def test_second_metadata_record_breaks_cardinality():
+    contracts = CONTRACT_LIST + [CONTRACTS["SP.POP.TOTL"]]
+    failed = [r for r in check(contracts=contracts) if not r.passed]
+    assert [(r.series, r.test) for r in failed] == [("SP.POP.TOTL", "C-integrity")]
+
+
+def test_unknown_source_breaks_cardinality():
+    contracts = [replace(c, source="Some other database") if c.series == "PWT.AVH" else c
+                 for c in CONTRACT_LIST]
+    assert blocked(check(contracts=contracts)) == ["PWT.AVH"]
+
+
+def test_every_series_states_its_units():
+    assert units_problems() == []
+    ppp = CONTRACTS["PA.NUS.PRVT.PP"]
+    assert units_problems([replace(ppp, ppp_base_year=None)]) == [
+        ("PA.NUS.PRVT.PP", "international dollars without a PPP base year")]
+    population = CONTRACTS["SP.POP.TOTL"]
+    assert units_problems([replace(population, price_basis="current")]) == [
+        ("SP.POP.TOTL", "price basis or PPP base year without a currency")]
+
+
+def test_series_without_contract_have_a_reason():
+    assert not set(NOT_CONTRACTED) & set(CONTRACTS)
+    assert all(NOT_CONTRACTED.values())

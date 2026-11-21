@@ -54,3 +54,35 @@ def test_decomposition_years_get_a_rating(snapshot):
     assert us[2023].band == MEDIUM and "also estimated" in us[2023].reason
     india_2022 = rate_decomposition(NNIDecomposition(snapshot, "IND").year(2022))
     assert india_2022.band == LOW
+
+
+def test_every_reason_names_criterion_dimension_and_concept():
+    import re
+    from nni_model.dqr import CRITERIA, MET
+    pattern = re.compile(r"^(C-[a-z]+) \(([A-Za-z]+): ([A-Za-z -]+)\): .+")
+    for purposes in RATINGS.values():
+        for table in purposes.values():
+            for band, reason in table.values():
+                if band == HIGH:
+                    assert reason.startswith(MET)
+                    continue
+                m = pattern.match(reason)
+                assert m, reason
+                criterion, dimension, concept = m.groups()
+                assert CRITERIA[criterion][0] == dimension and concept in CRITERIA[criterion][1]
+
+
+def test_s3_example_hours_name_lineage_provenance():
+    r = rate("P3", "CHN", inputs=["hours"])
+    assert r.band == LOW and r.reason.startswith("CHN hours: C-measured (Lineage: Provenance)")
+
+
+def test_outlier_flag_names_validity_concept():
+    r = rate("P1", "USA", flags=["outlier-suspect"])
+    assert r.band == LOW and "(Validity: Values in Specified Range)" in r.reason
+
+
+def test_why_refuses_a_concept_from_another_dimension():
+    from nni_model.dqr import why
+    with pytest.raises(ValueError):
+        why("C-measured", "Existence", "x")
