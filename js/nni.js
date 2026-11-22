@@ -63,7 +63,7 @@ class NNIDecomposition {
       realGdpPerHead: gdpReal / population,
       realNniPerHead: nni / consumptionDeflator / population,
       direct: nniPcUsd !== null && fx !== null ? (nniPcUsd * fx) / consumptionDeflator : null,
-      flags: filled ? ["estimated: NNI/GNI held at last published value"] : [],
+      flags: filled ? ["nowcast: NNI/GNI held at last published value"] : [],
       realGdp: gdpReal,
       personsEngaged: this.get("PWT.EMP", year),
       hoursPerPerson: this.get("PWT.AVH", year),

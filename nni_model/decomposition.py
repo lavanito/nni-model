@@ -133,7 +133,7 @@ class NNIDecomposition:
 
         Both values are in dollars at the same conversion rate, so the rate
         cancels. After the last published year, the ratio is held at its last
-        published value and the year is flagged "estimated".
+        published value and the year is flagged "nowcast".
         """
         nni, gni = self._get("NY.ADJ.NNTY.CD", year), self._get("NY.GNP.MKTP.CD", year)
         if nni is not None and gni is not None:
@@ -160,7 +160,7 @@ class NNIDecomposition:
             return None
         nni = gni * ratio                         # adjusted NNI, local currency
         consumption_deflator = cons / cons_real
-        flags = ["estimated: NNI/GNI held at last published value"] if filled else []
+        flags = ["nowcast: NNI/GNI held at last published value"] if filled else []
         direct = None
         nni_pc_usd, fx = self._get("NY.ADJ.NNTY.PC.CD", year), self._get("PA.NUS.FCRF", year)
         if nni_pc_usd is not None and fx is not None:
