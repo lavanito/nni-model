@@ -76,13 +76,13 @@ CHINA_GDP = (MEDIUM, why("C-concept", "Agree with Real-world",
 INDIA_GDP = (LOW, why("C-time", "Temporal Consistency",
                       "base year changed from 2011-12 to 2022-23 (MoSPI, Feb 2026); "
                       "nominal GDP about 3-4% lower; break in the series"))
-PPP_CN_IN = (LOW, why("C-measured", "Provenance",
+PPP_CN_IN = (LOW, why("C-measured", "Segment Documentation",
                       "PPPs extrapolated from the 2021 benchmark; wide error margins for China and India"))
 HOURS_CN_IN = (LOW, why("C-measured", "Provenance",
                         "PWT hours come from weak underlying data (TED, ILO modelled estimates), "
                         "not direct observation"))
 
-PPP_EXTRAPOLATED = why("C-measured", "Provenance",
+PPP_EXTRAPOLATED = why("C-measured", "Segment Documentation",
                        "2022 onwards extrapolated from the ICP 2021 benchmark")
 
 # RATINGS[series][purpose][economy] = (band, reason); "-" = series not used for the purpose.
@@ -94,8 +94,8 @@ RATINGS = {
         "P2": _all(HIGH, MET,
                    EA21=(MEDIUM, why("C-concept", "Agree with Real-world",
                                      "euro area total includes Ireland's multinational profits"))),
-        "P4": _all(MEDIUM, why("C-across", "Equivalence of Data",
-                               "depreciation and depletion estimates differ in method between economies")),
+        "P4": _all(MEDIUM, why("C-measured", "Segment Documentation",
+                               "depreciation and depletion are estimated, not observed")),
     },
     "ppp": {
         "P2": _all(MEDIUM, PPP_EXTRAPOLATED, CHN=PPP_CN_IN, IND=PPP_CN_IN),
@@ -104,8 +104,8 @@ RATINGS = {
     },
     "population": {
         p: _all(HIGH, MET,
-                IND=(MEDIUM, why("C-measured", "Provenance",
-                                 "last census 2011; error a few per cent, does not reverse the ranking")))
+                IND=(MEDIUM, why("C-measured", "Segment Documentation",
+                                 "projected from the last census, 2011; error a few per cent, does not reverse the ranking")))
         for p in ("P2", "P4")
     },
     "employment": {
