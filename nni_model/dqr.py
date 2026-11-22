@@ -5,7 +5,7 @@ What this file does
     applies the S3 DQR rule:
 
         1. look up each input's rating for the answer's purpose and economy
-        2. apply input flags (provisional: one band down; estimated, backfilled,
+        2. apply input flags (provisional: one band down; nowcast,
            forecast: at most Medium; outlier-suspect or break: Low)
         3. take the weakest link
         4. cap at Low if the check term CHK exceeds 1 percentage point
@@ -141,8 +141,7 @@ INPUTS = {
 
 FLAG_CAPS = {
     "published": None,
-    "estimated": MEDIUM,
-    "backfilled": MEDIUM,
+    "nowcast": MEDIUM,      # replaced "estimated" and "backfilled" (Lavan, 22 Nov 2026)
     "forecast": MEDIUM,
     "outlier-suspect": LOW,
     "break": LOW,
@@ -167,7 +166,7 @@ def rate(purpose, economies, flags=(), chk=None, inputs=None):
     """The DQR for an answer: band, label and the reason that set it.
 
     economies: one economy, or several for a comparison (weakest economy wins).
-    flags: input flags on the values used, e.g. ["estimated"] or ["provisional"].
+    flags: input flags on the values used, e.g. ["nowcast"] or ["provisional"].
 
     Example (S3 worked example: "Is productivity higher in India or China?"):
         >>> r = rate("P3", ["IND", "CHN"])

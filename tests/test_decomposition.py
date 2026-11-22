@@ -40,8 +40,8 @@ def test_check_term_flags_india_conversion(snapshot):
 @pytest.mark.parametrize("economy,last_published", [("USA", 2021), ("GBR", 2018), ("IND", 2021)])
 def test_years_after_last_published_nni_are_flagged(snapshot, economy, last_published):
     for r in NNIDecomposition(snapshot, economy).run():
-        estimated = any(f.startswith("estimated") for f in r.flags)
-        assert estimated == (r.year > last_published)
+        nowcast = any(f.startswith("nowcast") for f in r.flags)
+        assert nowcast == (r.year > last_published)
 
 
 def test_every_economy_reaches_2024(snapshot):

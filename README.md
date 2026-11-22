@@ -28,7 +28,7 @@ The derivation, line by line, is in the project doc `claude/a4-identity-derivati
 
 ## Flags
 
-- **Estimated:** WDI's adjusted NNI ends in 2021 (United Kingdom: 2018). After that, NNI = GNI × the last published NNI/GNI. Recent years are needed, so the gap is filled and every filled year says so.
+- **Nowcast** (replaced "estimated" and "backfilled", 22 Nov 2026): WDI's adjusted NNI ends in 2021 (United Kingdom: 2018). After that, NNI = GNI × the last published NNI/GNI. Recent years are needed, so the gap is filled and every filled year says so.
 - **Break:** India's 2021 to 2022 change mixes the old and new GDP bases.
 
 ## Files

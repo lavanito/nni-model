@@ -22,10 +22,10 @@ def test_s3_example_uk_growth_first_release_is_medium():
     assert r.band == MEDIUM and r.reason.startswith("provisional")
 
 
-def test_estimated_value_is_capped_at_medium():
+def test_nowcast_value_is_capped_at_medium():
     assert rate("P1", "USA").band == HIGH
-    r = rate("P1", "USA", flags=["estimated"])
-    assert r.band == MEDIUM and r.reason.startswith("estimated")
+    r = rate("P1", "USA", flags=["nowcast"])
+    assert r.band == MEDIUM and r.reason.startswith("nowcast")
 
 
 def test_check_term_above_one_point_caps_at_low():
@@ -51,7 +51,7 @@ def snapshot():
 def test_decomposition_years_get_a_rating(snapshot):
     us = {r.year: rate_decomposition(r) for r in NNIDecomposition(snapshot, "USA").run()}
     assert us[2021].band == MEDIUM                          # GNI/NNI and PPP Medium for P4
-    assert us[2023].band == MEDIUM and "also estimated" in us[2023].reason
+    assert us[2023].band == MEDIUM and "also nowcast" in us[2023].reason
     india_2022 = rate_decomposition(NNIDecomposition(snapshot, "IND").year(2022))
     assert india_2022.band == LOW
 
