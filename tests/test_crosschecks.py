@@ -87,3 +87,14 @@ def test_each_euro_area_member_has_gni_per_head_at_ppp():
     for m in EURO_MEMBERS:
         expected = gni_at_ppp(s, m, 2024) / s.get(m, "SP.POP.TOTL", 2024)
         assert s.get(m, "NY.GNP.PCAP.PP.CD", 2024) == expected, m
+
+
+def test_agreement_rates_for_the_method_page():
+    from nni_model.crosschecks import agreement_rates
+    rates = {check: (agree, total) for check, agree, total in agreement_rates()}
+    assert rates["growth, same sign"] == (137, 138)            # Japan 2011 differs, both near zero
+    assert rates["growth, within 0.5 log points"] == (133, 138)
+    assert rates["level in 2021, within 5%"] == (5, 6)          # Japan +7.5%
+    assert rates["euro area hours, within 1%"] == (22, 24)      # 2022 and 2023
+    assert rates["ranking on real GDP per hour, 2023, same order"] == (1, 1)
+    assert rates["euro area growth in real GDP per hour, 2023, same sign"] == (1, 1)

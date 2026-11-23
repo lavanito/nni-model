@@ -15,6 +15,8 @@ What this file does
     3. Euro area rank on real GDP per hour worked at PPP, 2023, with each hours source.
     4. Sign of euro area growth in real GDP per hour worked, 2023, with each hours source.
 
+    agreement_rates() counts how often the two sources agree on each check (R6).
+
 Not done: ILOSTAT modelled hours (A2 lists them; no download yet).
 """
 
@@ -157,6 +159,47 @@ def euro_per_hour_growth(s, y=2023):
     pwt = output - log_change(pwt_hours(s, y - 1), pwt_hours(s, y))
     eurostat = output - log_change(s.get("EA21", "EUROSTAT.HOURS", y - 1), s.get("EA21", "EUROSTAT.HOURS", y))
     return output, pwt, eurostat
+
+
+# Tolerances for "agree" (proposed 23 Nov 2026 for the Method and caveats page;
+# Lavan to confirm). Signs and ranks need no tolerance.
+TOLERANCE = {"growth": 0.5,      # log points, WDI against PWT rgdpna
+             "level": 5.0,       # per cent, WDI against PWT rgdpo, 2021
+             "hours": 1.0}       # per cent, euro area hours, PWT against Eurostat
+
+
+def agreement_rates(s=None, tolerance=TOLERANCE):
+    """How often the second source agrees with the model's source (R6).
+
+    Returns (check, agreeing, total) rows for the Method and caveats page.
+
+    Example:
+        >>> [(c, a, n) for c, a, n in agreement_rates()][:2]
+        [('growth, same sign', 137, 138), ('growth, within 0.5 log points', 133, 138)]
+    """
+    s = load_inputs() if s is None else s
+    signs = close = total = 0
+    for e in SIX:
+        for y in range(2001, 2024):
+            w = log_change(s.get(e, "NY.GDP.MKTP.KN", y - 1), s.get(e, "NY.GDP.MKTP.KN", y))
+            if e == "EA21":
+                p = euro_rgdpna_growth(s, y)
+            else:
+                p = log_change(s.get(e, "PWT.RGDPNA", y - 1), s.get(e, "PWT.RGDPNA", y))
+            total += 1
+            signs += w * p >= 0
+            close += abs(w - p) < tolerance["growth"]
+    levels = [abs(output_level_gap(s, e)) < tolerance["level"] for e in SIX]
+    hours = [abs(h) < tolerance["hours"] for _, h, _ in euro_hours_gap(s)]
+    output, pwt, eurostat = euro_per_hour_growth(s)
+    return [
+        ("growth, same sign", signs, total),
+        (f"growth, within {tolerance['growth']} log points", close, total),
+        (f"level in 2021, within {tolerance['level']:.0f}%", sum(levels), len(levels)),
+        (f"euro area hours, within {tolerance['hours']:.0f}%", sum(hours), len(hours)),
+        ("ranking on real GDP per hour, 2023, same order", int(ranking(s)[0] == ranking(s, euro_hours="Eurostat")[0]), 1),
+        ("euro area growth in real GDP per hour, 2023, same sign", int(pwt * eurostat > 0), 1),
+    ]
 
 
 def report():
