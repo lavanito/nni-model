@@ -15,4 +15,4 @@ dependencies = []
 packages = ["nni_model"]
 
 [tool.setuptools.package-data]
-nni_model = ["data/*/*.csv", "data/*/README.md"]
+nni_model = ["data/*/*.csv", "data/*/README.md", "data/FINGERPRINTS.csv"]

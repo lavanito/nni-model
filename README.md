@@ -38,6 +38,7 @@ The derivation, line by line, is in the project doc `claude/a4-identity-derivati
 | `nni_model/data.py` | Loads WDI snapshots; builds the euro area from its members |
 | `nni_model/decomposition.py` | The decomposition class |
 | `nni_model/contracts.py` | Data contracts (S3 Layer B): C-complete, C-valid, C-integrity (uniqueness, referential integrity, cardinality); a failing series is blocked. Also the S3 units test |
+| `nni_model/fingerprints.py` | SHA-256 fingerprint of each raw data file, stored in `nni_model/data/FINGERPRINTS.csv` (first written 23 Nov 2026 from the files then in the repository); a test fails if any file changes. After a deliberate new download: `python -m nni_model.fingerprints --write` |
 | `nni_model/dqr.py` | DQR: S3 ratings as data, input flags, weakest link, CHK cap, digits by band; each reason names its criterion and CDDQ underlying concept |
 | `nni_model/crosschecks.py` | Cross-checks against PWT and Eurostat, reported on the page; tests fail if a gap turns severe |
 | `nni_model/export.py` | Writes `build/model_input.json` for the page: data, breaks, DQR tables |
@@ -65,6 +66,7 @@ Code: MIT, Lavan Mahadeva Limited. Data: World Bank, World Development Indicator
 
 - **Adjusted NNI:** gross national income minus consumption of fixed capital and natural resource depletion (WDI's definition).
 - **Chain-linked volume:** a total built by linking each year's growth at the previous year's prices.
+- **Fingerprint (SHA-256):** a 64-character code calculated from every byte of a file; change one byte and the code changes.
 - **Log point:** the change in the natural log of a value, times 100; log points add exactly.
 - **PPP (purchasing power parity):** a conversion rate that equalises what money buys across economies.
 - **Vintage:** one dated release of the data.
