@@ -1,0 +1,3 @@
+# Raw data files are evidence: never change their line endings on checkout,
+# so their SHA-256 fingerprints (nni_model/data/FINGERPRINTS.csv) hold on every computer.
+nni_model/data/** -text
