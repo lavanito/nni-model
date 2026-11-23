@@ -161,11 +161,13 @@ def euro_per_hour_growth(s, y=2023):
     return output, pwt, eurostat
 
 
-# Tolerances for "agree" (proposed 23 Nov 2026 for the Method and caveats page;
-# Lavan to confirm). Signs and ranks need no tolerance.
-TOLERANCE = {"growth": 0.5,      # log points, WDI against PWT rgdpna
-             "level": 5.0,       # per cent, WDI against PWT rgdpo, 2021
-             "hours": 1.0}       # per cent, euro area hours, PWT against Eurostat
+# Two sources "agree" when they differ by no more than a typical revision of
+# the same figure between our two WDI editions (Lavan, 23 Nov 2026): the median
+# of the non-zero revisions in the textbook's data/series/revisions.csv.
+# Signs and ranks need no tolerance.
+TOLERANCE = {"growth": 0.09,     # percentage points: real GDP growth, median revision
+             "level": 0.99,      # log points (about 1%): GDP per head at PPP, median revision
+             "hours": 0.99}      # no second edition of PWT hours: the level figure is used
 
 
 def agreement_rates(s=None, tolerance=TOLERANCE):
@@ -175,7 +177,7 @@ def agreement_rates(s=None, tolerance=TOLERANCE):
 
     Example:
         >>> [(c, a, n) for c, a, n in agreement_rates()][:2]
-        [('growth, same sign', 137, 138), ('growth, within 0.5 log points', 133, 138)]
+        [('growth, same sign', 137, 138), ('growth, within 0.09 percentage points', 99, 138)]
     """
     s = load_inputs() if s is None else s
     signs = close = total = 0
@@ -189,14 +191,16 @@ def agreement_rates(s=None, tolerance=TOLERANCE):
             total += 1
             signs += w * p >= 0
             close += abs(w - p) < tolerance["growth"]
+    # The level and hours gaps are in per cent; near the tolerance, per cent and log points
+    # differ by under 0.01, so they are compared directly.
     levels = [abs(output_level_gap(s, e)) < tolerance["level"] for e in SIX]
     hours = [abs(h) < tolerance["hours"] for _, h, _ in euro_hours_gap(s)]
     output, pwt, eurostat = euro_per_hour_growth(s)
     return [
         ("growth, same sign", signs, total),
-        (f"growth, within {tolerance['growth']} log points", close, total),
-        (f"level in 2021, within {tolerance['level']:.0f}%", sum(levels), len(levels)),
-        (f"euro area hours, within {tolerance['hours']:.0f}%", sum(hours), len(hours)),
+        (f"growth, within {tolerance['growth']} percentage points", close, total),
+        (f"level in 2021, within {tolerance['level']} log points", sum(levels), len(levels)),
+        (f"euro area hours, within {tolerance['hours']} log points", sum(hours), len(hours)),
         ("ranking on real GDP per hour, 2023, same order", int(ranking(s)[0] == ranking(s, euro_hours="Eurostat")[0]), 1),
         ("euro area growth in real GDP per hour, 2023, same sign", int(pwt * eurostat > 0), 1),
     ]
