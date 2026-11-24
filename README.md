@@ -39,7 +39,8 @@ The derivation, line by line, is in the project doc `claude/a4-identity-derivati
 | `nni_model/decomposition.py` | The decomposition class |
 | `nni_model/contracts.py` | Data contracts (S3 Layer B): C-complete, C-valid, C-integrity (uniqueness, referential integrity, cardinality); a failing series is blocked. Also the S3 units test |
 | `nni_model/fingerprints.py` | SHA-256 fingerprint of each raw data file, stored in `nni_model/data/FINGERPRINTS.csv` (first written 23 Nov 2026 from the files then in the repository); a test fails if any file changes. After a deliberate new download: `python -m nni_model.fingerprints --write` |
-| `nni_model/dqr.py` | DQR: S3 ratings as data, input flags, weakest link, CHK cap, digits by band; each reason names its criterion and CDDQ underlying concept |
+| `nni_model/dqr.py` | DQR: S3 ratings as data, input flags, weakest link, CHK cap, digits by band (rates one more decimal, counts whole), proxy cap at Low; each reason names its criterion and CDDQ underlying concept |
+| `nni_model/measures.py` | Real NNI per head in constant 2021 international dollars; household PPP, built from members for the euro area (from the textbook's Chapter 13) |
 | `nni_model/crosschecks.py` | Cross-checks against PWT and Eurostat, reported on the page; tests fail if a gap turns severe |
 | `nni_model/export.py` | Writes `build/model_input.json` for the page: data, breaks, DQR tables |
 | `js/nni.js` | JavaScript port of the decomposition and DQR; a test checks it matches Python |
