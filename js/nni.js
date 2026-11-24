@@ -136,11 +136,67 @@ function rateDecomposition(input, result) {
   return rate(input, "P4", result.economy, result.flags.map((f) => f.split(":")[0]), result.chk);
 }
 
-// The figure as the page shows it: High one decimal, Medium whole number, Low "about".
-function show(value, band) {
-  if (band === HIGH) return value.toFixed(1);
-  if (band === MEDIUM) return value.toFixed(0);
-  return `about ${value.toFixed(0)}`;
+// The figure as the page shows it; same rules as nni_model/dqr.py show().
+// Levels: High one decimal, Medium whole number, Low "about". Rates one more
+// decimal than levels (High 2, Medium 1, Low "about" and 1). Counts whole.
+const RATE_DECIMALS = { 3: 2, 2: 1, 1: 1 };
+
+// Fixed decimals rounded as Python's format does: on the exact decimal value of
+// the number, ties to even (1234.5 -> "1234"). JavaScript's toFixed rounds ties
+// away from zero, so it is used only to get the exact digits.
+function fixed(value, decimals) {
+  const [whole, fraction] = Math.abs(value).toFixed(100).split(".");
+  const rest = fraction.slice(decimals);
+  let digits = BigInt(whole + fraction.slice(0, decimals));
+  if (rest[0] > "5" || (rest[0] === "5" && /[1-9]/.test(rest.slice(1)))) digits += 1n;
+  else if (rest[0] === "5" && digits % 2n === 1n) digits += 1n;
+  const text = digits.toString().padStart(decimals + 1, "0");
+  const out = decimals ? `${text.slice(0, -decimals)}.${text.slice(-decimals)}` : text;
+  return value < 0 || Object.is(value, -0) ? `-${out}` : out;
 }
 
-module.exports = { NNIDecomposition, rate, rateDecomposition, show, logChange, HIGH, MEDIUM, LOW };
+function show(value, band, { rate = false, count = false } = {}) {
+  let text;
+  if (rate) text = fixed(value, RATE_DECIMALS[band]);
+  else if (count) text = fixed(value, 0);
+  else if (band === HIGH) return fixed(value, 1);
+  else if (band === MEDIUM) return fixed(value, 0);
+  else return `about ${fixed(value, 0)}`;
+  return band === LOW ? `about ${text}` : text;
+}
+
+// A proxy figure is rated at most Low; same as nni_model/dqr.py cap_proxy().
+function capProxy(rating) {
+  return { band: LOW, name: NAMES[LOW], label: LABELS[LOW],
+           reason: `proxy, rated at most Low; also ${rating.reason}` };
+}
+
+// Household-consumption PPP; for EA21 built from its members (nni_model/measures.py).
+function householdPPP(input, code, year) {
+  const get = (e, series) => {
+    const v = ((input.values[e] || {})[series] || {})[String(year)];
+    return v === undefined ? null : v;
+  };
+  if (code !== "EA21") return get(code, "PA.NUS.PRVT.PP");
+  let euros = 0, dollars = 0;
+  for (const m of input.euro_members) {
+    const cons = get(m, "NE.CON.PRVT.CN"), ppp = get(m, "PA.NUS.PRVT.PP");
+    if (cons === null || ppp === null) return null;
+    euros += cons;
+    dollars += cons / ppp;
+  }
+  return euros / dollars;
+}
+
+// Real NNI per head in constant 2021 international dollars, and its flags.
+function realNniPerHeadPPP(input, code, year, base = 2021) {
+  const model = new NNIDecomposition(input, code);
+  const atBase = model.levels(base), now = model.levels(year);
+  const ppp = householdPPP(input, code, base), gdp = model.get("NY.GDP.MKTP.CN", base);
+  if (atBase === null || now === null || ppp === null || gdp === null) return [null, []];
+  const baseLevel = atBase.nniToGdp * gdp / ppp / atBase.population;
+  return [baseLevel * now.realNniPerHead / atBase.realNniPerHead, [...now.flags]];
+}
+
+module.exports = { NNIDecomposition, rate, rateDecomposition, show, capProxy, householdPPP,
+                   realNniPerHeadPPP, fixed, logChange, HIGH, MEDIUM, LOW };

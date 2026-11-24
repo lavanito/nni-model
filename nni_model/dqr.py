@@ -202,18 +202,45 @@ def rate(purpose, economies, flags=(), chk=None, inputs=None):
     return Rating(band, label, reason)
 
 
-def show(value, band):
+# Rates (log points, per cent) get one more decimal place than levels:
+# High 2, Medium 1, Low "about" and 1 (the horizontal domain expert, 7 November 2026).
+RATE_DECIMALS = {HIGH: 2, MEDIUM: 1, LOW: 1}
+
+
+def show(value, band, rate=False, count=False):
     """The figure as the page shows it, digits set by band (decision 4).
+
+    Levels: High one decimal, Medium whole, Low "about" and whole. Rates
+    (log points, per cent) one more decimal than levels. Counts, such as
+    population, always whole. A Low band always says "about".
 
     Example:
         >>> show(2.4567, HIGH), show(2.4567, MEDIUM), show(2.4567, LOW)
         ('2.5', '2', 'about 2')
+        >>> show(2.4567, HIGH, rate=True), show(2.4567, LOW, rate=True), show(1234.5, HIGH, count=True)
+        ('2.46', 'about 2.5', '1234')
     """
-    if band == HIGH:
+    if rate:
+        text = f"{value:.{RATE_DECIMALS[band]}f}"
+    elif count:
+        text = f"{value:.0f}"
+    elif band == HIGH:
         return f"{value:.1f}"
-    if band == MEDIUM:
+    elif band == MEDIUM:
         return f"{value:.0f}"
-    return f"about {value:.0f}"
+    else:
+        return f"about {value:.0f}"
+    return f"about {text}" if band == LOW else text
+
+
+def cap_proxy(rating):
+    """A proxy figure is rated at most Low (the horizontal domain expert, 7 November 2026).
+
+    Example:
+        >>> cap_proxy(Rating(HIGH, "x", "C-measured: ok")).band == LOW
+        True
+    """
+    return Rating(LOW, "Indicative only", f"proxy, rated at most Low; also {rating.reason}")
 
 
 def rate_decomposition(result):
